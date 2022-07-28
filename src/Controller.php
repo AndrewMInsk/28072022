@@ -2,38 +2,60 @@
 
 
     namespace src;
-
+    //@TODO: validate date
 
     class Controller
     {
         private $view;
-        private $conn;
+
         public function __construct()
         {
             $this->view = new \src\View();
-            $this->conn = new \mysqli('localhost:3307', 'root', '', 'humans');
-            if ($this->conn->connect_error) {
-                die('Connection failed: ' . $this->conn->connect_error);
+        }
+
+        public function index()
+        {
+            $list = Human::getList();
+            $this->view->generate('index.php', ['list' => $list]);
+        }
+
+        public function delete()
+        {
+            if (isset($_GET['id'])) {
+                $result = Human::delete($_GET['id']);
+            } else {
+                exit('Not found');
             }
+            $this->view->generate('delete.php', ['result' => $result]);
+        }
 
-//            $sql = "INSERT INTO humans (name, surname) VALUES
-//            ('Sam', 41),
-//            ('Bob', 29),
-//            ('Alice', 32)";
-//            if($conn->query($sql)){
-//                echo "Данные успешно добавлены";
-//            } else{
-//                echo "Ошибка: " . $conn->error;
-//            }
+        public function edit()
+        {
+            if (isset($_GET['id'])) {
+                $model = Human::findById($_GET['id']);
+            } else {
+                exit('Not found');
+            }
+            $this->view->generate('edit.php', ['model' => $model]);
+        }
 
+        public function save()
+        {
+            if (isset($_GET['id'])) {
+                $model = Human::findById($_GET['id']);
+                $result = $model->save($_GET['id']);
+            } else {
+                exit('Not found');
+            }
+            $this->view->generate('save.php', ['result' => $result]);
         }
-        function __destruct() {
-            $this->conn->close();
-        }
-        public function index(){
-            $this->view->generate('index.php', ['action'=>'index']);
-        }
-        public function delete(){
-            $this->view->generate('index.php', ['action'=>'delete', 'data' => $_REQUEST]);
+        public function new()
+        {
+            $result = false;
+            if (isset($_POST['create'])) {
+                $model = new Human();
+                $result = $model->create();
+            }
+            $this->view->generate('new.php', ['result' => $result]);
         }
     }
